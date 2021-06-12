@@ -125,6 +125,8 @@ class Config @Inject() (implicit val configuration: Configuration) {
     this.config
       .getOptional[Boolean](Config.KEY_SCHEDULER_OSM_MATCHER_MANUAL)
       .getOrElse(Config.DEFAULT_OSM_MATCHER_MANUAL)
+  lazy val proxyBasePath: String =
+    this.config.getOptional[String](Config.KEY_PROXY_BASE_PATH).getOrElse("")
   lazy val proxyPort: Option[Int] = this.config.getOptional[Int](Config.KEY_PROXY_PORT)
   lazy val isProxySSL: Boolean =
     this.config.getOptional[Boolean](Config.KEY_PROXY_SSL).getOrElse(false);
@@ -233,6 +235,7 @@ object Config {
   val KEY_CACHING_REDIS_PORT        = s"$GROUP_MAPROULETTE_CACHING.redis.port"
   val KEY_CACHING_REDIS_RESET       = s"$GROUP_MAPROULETTE_CACHING.redis.resetOnStart"
   val KEY_BOOTSTRAP                 = s"$GROUP_MAPROULETTE.bootstrap"
+  val KEY_PROXY_BASE_PATH           = s"$GROUP_MAPROULETTE.proxy.basePath"
   val KEY_PROXY_PORT                = s"$GROUP_MAPROULETTE.proxy.port"
   val KEY_PROXY_SSL                 = s"$GROUP_MAPROULETTE.proxy.ssl"
   val KEY_LOGO                      = s"$GROUP_MAPROULETTE.logo"

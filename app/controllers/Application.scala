@@ -8,11 +8,13 @@ import java.util.Calendar
 
 import akka.actor.ActorRef
 import javax.inject.{Inject, Named}
+import org.maproulette.Config
 import org.maproulette.exception.{StatusMessage, StatusMessages}
 import org.maproulette.framework.service.{ServiceManager, UserService}
 import org.maproulette.jobs.SchedulerActor.RunJob
 import org.maproulette.models.dal._
 import org.maproulette.session.SessionManager
+import org.slf4j.LoggerFactory
 import play.api.libs.json.{JsString, Json}
 import play.api.mvc._
 
@@ -23,11 +25,16 @@ class Application @Inject() (
     sessionManager: SessionManager,
     dalManager: DALManager,
     serviceManager: ServiceManager,
-    @Named("scheduler-actor") schedulerActor: ActorRef
+    @Named("scheduler-actor") schedulerActor: ActorRef,
+    val config: Config
 ) extends AbstractController(components)
     with StatusMessages {
+
+  private val logger = LoggerFactory.getLogger(this.getClass)
+
   def untrail(path: String): Action[AnyContent] = Action {
-    MovedPermanently(s"/$path")
+    logger.debug(s"untrail: redirecting permanently to ${config.proxyBasePath}/${path}")
+    MovedPermanently(s"${config.proxyBasePath}/$path")
   }
 
   def clearCaches: Action[AnyContent] = Action.async { implicit request =>

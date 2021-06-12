@@ -15,6 +15,7 @@ import org.maproulette.framework.service.UserService
 import org.maproulette.models.dal.DALManager
 import org.maproulette.session.SessionManager
 import org.maproulette.permissions.Permission
+import org.slf4j.LoggerFactory
 import play.api.libs.json.{JsString, Json}
 import play.api.mvc._
 import play.shaded.oauth.oauth.signpost.exception.OAuthNotAuthorizedException
@@ -37,6 +38,8 @@ class AuthController @Inject() (
     val config: Config
 ) extends AbstractController(components)
     with StatusMessages {
+
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -103,17 +106,26 @@ class AuthController @Inject() (
   }
 
   private def proxyRedirect(call: Call)(implicit request: Request[AnyContent]): String = {
+    val proxyScheme = s"http${if (config.isProxySSL){
+      "s"
+    } else {
+      ""
+    }}://"
+    val proxyURL = s"${proxyScheme}${request.host}${config.proxyBasePath}${call.url}"
     config.proxyPort match {
       case Some(port) =>
         val applicationPort = System.getProperty("http.port")
-        call
-          .absoluteURL(config.isProxySSL)
-          .replaceFirst(s":$applicationPort", s"${if (port == 80) {
+        val proxyURLNoPort = proxyURL.replaceFirst(s":$applicationPort",
+          s"${if (port == 80) {
             ""
           } else {
             s":$port"
           }}")
-      case None => call.absoluteURL(config.isProxySSL)
+        logger.debug(s"proxyRedirect: sending to ${proxyURLNoPort}")
+        proxyURLNoPort
+      case None =>
+        logger.debug(s"proxyRedirect: sending to ${proxyURL}")
+        proxyURL
     }
   }
 
